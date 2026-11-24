@@ -3,120 +3,68 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Smart AI Tools</title>
 <style>
-*{box-sizing:border-box}
-body{margin:0;padding:18px;background:#101827;color:white;font-family:Arial}
-h1{text-align:center;color:#55d6be}
-p{text-align:center;color:#bdc8d8}
-.card{background:#1d2a3d;padding:18px;border-radius:16px;margin:15px 0}
-button{width:100%;padding:15px;margin:7px 0;border:0;border-radius:10px;background:#13b89b;color:#071b1a;font-size:16px;font-weight:bold}
+body{margin:0;background:#101827;color:white;font-family:Arial;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+main{width:100%;max-width:400px;text-align:center}
+h1{color:#55d6be}
+button{width:100%;padding:20px;margin:12px 0;border:0;border-radius:14px;font-size:18px;font-weight:bold;background:#13b89b;color:#071b1a}
 .stop{background:#d95d68;color:white}
-video{width:100%;border-radius:12px;background:#000;margin-top:10px}
-#hasil{white-space:pre-wrap;overflow-wrap:anywhere}
+video{width:100%;border-radius:14px;background:#000;margin-top:15px}
+#status{margin:18px 0;color:#55d6be;white-space:pre-wrap}
 </style>
 </head>
 <body>
+<main>
 <h1>Smart AI Tools</h1>
-<p>Pusat kontrol perangkat HP</p>
-
-<div class="card">
-<h3>Kontrol semua</h3>
-<button onclick="mulaiSemua()">MULAI SEMUA</button>
-<button class="stop" onclick="berhentiSemua()">MATIKAN SEMUA</button>
-</div>
-
-<div class="card">
-<h3>📷 Kamera</h3>
-<button onclick="kamera('user')">Kamera depan</button>
-<button onclick="kamera('environment')">Kamera belakang</button>
-<video id="cam" autoplay playsinline muted></video>
-</div>
-
-<div class="card">
-<h3>🎙️ Mikrofon</h3>
-<button onclick="mic()">Aktifkan mikrofon</button>
-</div>
-
-<div class="card">
-<h3>📍 Lokasi GPS</h3>
-<button onclick="gps()">Ambil lokasi</button>
-</div>
-
-<div class="card">
-<h3>Informasi</h3>
-<div id="hasil">Siap digunakan.</div>
-</div>
-
+<p>Pusat kontrol perangkat</p>
+<button onclick="mulai()">MULAI</button>
+<button class="stop" onclick="berhenti()">BERHENTI</button>
+<div id="status">Siap digunakan.</div>
+<video id="kamera" autoplay playsinline muted></video>
+</main>
 <script>
-let streams={};
+let kamera=null,mikrofon=null;
 
-function info(t){
-document.getElementById('hasil').textContent=t;
-}
-
-async function kamera(mode){
+async function mulai(){
+let status=[];
 try{
-stop('camera');
-streams.camera=await navigator.mediaDevices.getUserMedia({
-video:{facingMode:mode},audio:false
+kamera=await navigator.mediaDevices.getUserMedia({
+video:{facingMode:"user"},audio:false
 });
-document.getElementById('cam').srcObject=streams.camera;
-info('Kamera aktif.');
-}catch(e){info('Kamera gagal: '+e.message)}
-}
+document.getElementById("kamera").srcObject=kamera;
+status.push("Kamera aktif");
+}catch(e){status.push("Kamera gagal: "+e.message)}
 
-async function mic(){
 try{
-streams.mic=await navigator.mediaDevices.getUserMedia({
+mikrofon=await navigator.mediaDevices.getUserMedia({
 audio:true,video:false
 });
-info('Mikrofon aktif.');
-}catch(e){info('Mikrofon gagal: '+e.message)}
-}
+status.push("Mikrofon aktif");
+}catch(e){status.push("Mikrofon gagal: "+e.message)}
 
-function gps(){
-if(!navigator.geolocation){
-info('GPS tidak didukung.');
-return;
-}
+document.getElementById("status").textContent=status.join("\n");
+
 navigator.geolocation.getCurrentPosition(
-p=>info('Lokasi berhasil:\nLatitude: '+p.coords.latitude+
-'\nLongitude: '+p.coords.longitude+
-'\nAkurasi: '+p.coords.accuracy+' meter'),
-e=>info('GPS gagal: '+e.message)
+p=>{
+document.getElementById("status").textContent +=
+"\nLokasi berhasil diperoleh.";
+},
+e=>{
+document.getElementById("status").textContent +=
+"\nLokasi gagal: "+e.message;
+}
 );
 }
 
-async function mulaiSemua(){
-let hasil=[];
-try{
-await kamera('user');
-hasil.push('Kamera aktif');
-}catch(e){hasil.push('Kamera gagal')}
-
-try{
-await mic();
-hasil.push('Mikrofon aktif');
-}catch(e){hasil.push('Mikrofon gagal')}
-
-info(hasil.join('\n')+'\nMeminta lokasi...');
-gps();
-}
-
-function stop(type){
-if(streams[type]){
-streams[type].getTracks().forEach(t=>t.stop());
-delete streams[type];
-}
-if(type==='camera')document.getElementById('cam').srcObject=null;
-}
-
-function berhentiSemua(){
-stop('camera');
-stop('mic');
-info('Kamera dan mikrofon sudah dimatikan.');
+function berhenti(){
+if(kamera)kamera.getTracks().forEach(t=>t.stop());
+if(mikrofon)mikrofon.getTracks().forEach(t=>t.stop());
+kamera=null;
+mikrofon=null;
+document.getElementById("kamera").srcObject=null;
+document.getElementById("status").textContent="Semua perangkat dihentikan.";
 }
 </script>
 </body>
