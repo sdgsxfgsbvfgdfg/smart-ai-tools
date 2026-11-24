@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -5,7 +6,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Smart AI Tools</title>
 <style>
-body{margin:0;background:#101827;color:white;font-family:Arial,sans-serif;padding:20px}
+*{box-sizing:border-box}
+body{margin:0;padding:18px;background:#101827;color:white;font-family:Arial}
 h1{text-align:center;color:#55d6be}
 p{text-align:center;color:#bdc8d8}
 .card{background:#1d2a3d;padding:18px;border-radius:16px;margin:15px 0}
@@ -20,29 +22,26 @@ video{width:100%;border-radius:12px;background:#000;margin-top:10px}
 <p>Pusat kontrol perangkat HP</p>
 
 <div class="card">
+<h3>Kontrol semua</h3>
+<button onclick="mulaiSemua()">MULAI SEMUA</button>
+<button class="stop" onclick="berhentiSemua()">MATIKAN SEMUA</button>
+</div>
+
+<div class="card">
 <h3>📷 Kamera</h3>
-<button onclick="kamera('user')">Kamera Depan</button>
-<button onclick="kamera('environment')">Kamera Belakang</button>
-<button class="stop" onclick="stop('camera')">Matikan Kamera</button>
+<button onclick="kamera('user')">Kamera depan</button>
+<button onclick="kamera('environment')">Kamera belakang</button>
 <video id="cam" autoplay playsinline muted></video>
 </div>
 
 <div class="card">
 <h3>🎙️ Mikrofon</h3>
-<button onclick="mic()">Aktifkan Mikrofon</button>
-<button class="stop" onclick="stop('mic')">Matikan Mikrofon</button>
+<button onclick="mic()">Aktifkan mikrofon</button>
 </div>
 
 <div class="card">
 <h3>📍 Lokasi GPS</h3>
-<button onclick="gps()">Ambil Lokasi</button>
-</div>
-
-<div class="card">
-<h3>🖥️ Berbagi Layar</h3>
-<button onclick="layar()">Bagikan Layar</button>
-<button class="stop" onclick="stop('screen')">Hentikan Berbagi</button>
-<video id="screen" autoplay playsinline muted></video>
+<button onclick="gps()">Ambil lokasi</button>
 </div>
 
 <div class="card">
@@ -53,6 +52,10 @@ video{width:100%;border-radius:12px;background:#000;margin-top:10px}
 <script>
 let streams={};
 
+function info(t){
+document.getElementById('hasil').textContent=t;
+}
+
 async function kamera(mode){
 try{
 stop('camera');
@@ -60,31 +63,46 @@ streams.camera=await navigator.mediaDevices.getUserMedia({
 video:{facingMode:mode},audio:false
 });
 document.getElementById('cam').srcObject=streams.camera;
-hasil('Kamera aktif.');
-}catch(e){hasil('Kamera gagal: '+e.message)}
+info('Kamera aktif.');
+}catch(e){info('Kamera gagal: '+e.message)}
 }
 
 async function mic(){
 try{
-streams.mic=await navigator.mediaDevices.getUserMedia({audio:true});
-hasil('Mikrofon aktif.');
-}catch(e){hasil('Mikrofon gagal: '+e.message)}
+streams.mic=await navigator.mediaDevices.getUserMedia({
+audio:true,video:false
+});
+info('Mikrofon aktif.');
+}catch(e){info('Mikrofon gagal: '+e.message)}
 }
 
 function gps(){
-if(!navigator.geolocation){hasil('GPS tidak didukung.');return}
+if(!navigator.geolocation){
+info('GPS tidak didukung.');
+return;
+}
 navigator.geolocation.getCurrentPosition(
-p=>hasil('Latitude: '+p.coords.latitude+'\nLongitude: '+p.coords.longitude),
-e=>hasil('GPS gagal: '+e.message)
+p=>info('Lokasi berhasil:\nLatitude: '+p.coords.latitude+
+'\nLongitude: '+p.coords.longitude+
+'\nAkurasi: '+p.coords.accuracy+' meter'),
+e=>info('GPS gagal: '+e.message)
 );
 }
 
-async function layar(){
+async function mulaiSemua(){
+let hasil=[];
 try{
-streams.screen=await navigator.mediaDevices.getDisplayMedia({video:true});
-document.getElementById('screen').srcObject=streams.screen;
-hasil('Berbagi layar aktif.');
-}catch(e){hasil('Berbagi layar gagal: '+e.message)}
+await kamera('user');
+hasil.push('Kamera aktif');
+}catch(e){hasil.push('Kamera gagal')}
+
+try{
+await mic();
+hasil.push('Mikrofon aktif');
+}catch(e){hasil.push('Mikrofon gagal')}
+
+info(hasil.join('\n')+'\nMeminta lokasi...');
+gps();
 }
 
 function stop(type){
@@ -93,12 +111,12 @@ streams[type].getTracks().forEach(t=>t.stop());
 delete streams[type];
 }
 if(type==='camera')document.getElementById('cam').srcObject=null;
-if(type==='screen')document.getElementById('screen').srcObject=null;
-hasil(type+' dihentikan.');
 }
 
-function hasil(t){
-document.getElementById('hasil').textContent=t;
+function berhentiSemua(){
+stop('camera');
+stop('mic');
+info('Kamera dan mikrofon sudah dimatikan.');
 }
 </script>
 </body>
