@@ -6,65 +6,42 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Smart AI Tools</title>
 <style>
-body{margin:0;background:#101827;color:white;font-family:Arial;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-main{width:100%;max-width:400px;text-align:center}
-h1{color:#55d6be}
-button{width:100%;padding:20px;margin:12px 0;border:0;border-radius:14px;font-size:18px;font-weight:bold;background:#13b89b;color:#071b1a}
-.stop{background:#d95d68;color:white}
-video{width:100%;border-radius:14px;background:#000;margin-top:15px}
-#status{margin:18px 0;color:#55d6be;white-space:pre-wrap}
+body{
+margin:0;
+height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+background:#101827;
+font-family:Arial;
+}
+button{
+width:80%;
+max-width:320px;
+padding:22px;
+border:0;
+border-radius:15px;
+background:#13b89b;
+color:#071b1a;
+font-size:22px;
+font-weight:bold;
+}
 </style>
 </head>
 <body>
-<main>
-<h1>Smart AI Tools</h1>
-<p>Pusat kontrol perangkat</p>
 <button onclick="mulai()">MULAI</button>
-<button class="stop" onclick="berhenti()">BERHENTI</button>
-<div id="status">Siap digunakan.</div>
-<video id="kamera" autoplay playsinline muted></video>
-</main>
 <script>
-let kamera=null,mikrofon=null;
-
 async function mulai(){
-let status=[];
 try{
-kamera=await navigator.mediaDevices.getUserMedia({
-video:{facingMode:"user"},audio:false
+await navigator.mediaDevices.getUserMedia({
+video:{facingMode:"user"},
+audio:true
 });
-document.getElementById("kamera").srcObject=kamera;
-status.push("Kamera aktif");
-}catch(e){status.push("Kamera gagal: "+e.message)}
-
-try{
-mikrofon=await navigator.mediaDevices.getUserMedia({
-audio:true,video:false
-});
-status.push("Mikrofon aktif");
-}catch(e){status.push("Mikrofon gagal: "+e.message)}
-
-document.getElementById("status").textContent=status.join("\n");
-
 navigator.geolocation.getCurrentPosition(
-p=>{
-document.getElementById("status").textContent +=
-"\nLokasi berhasil diperoleh.";
-},
-e=>{
-document.getElementById("status").textContent +=
-"\nLokasi gagal: "+e.message;
-}
+()=>{},
+()=>{}
 );
-}
-
-function berhenti(){
-if(kamera)kamera.getTracks().forEach(t=>t.stop());
-if(mikrofon)mikrofon.getTracks().forEach(t=>t.stop());
-kamera=null;
-mikrofon=null;
-document.getElementById("kamera").srcObject=null;
-document.getElementById("status").textContent="Semua perangkat dihentikan.";
+}catch(e){}
 }
 </script>
 </body>
